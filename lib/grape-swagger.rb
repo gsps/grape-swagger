@@ -286,6 +286,14 @@ module Grape
             def parse_entity_models(models)
               result = {}
 
+              models = models.flat_map do |model|
+                new_models = [model]
+                model.documentation.map do |prop,info|
+                  new_models << info[:type] if info[:type].kind_of?(Grape::Entity)
+                end
+                new_models
+              end
+
               models.each do |model|
                 name        = parse_entity_name(model)
                 properties  = {}
@@ -297,6 +305,8 @@ module Grape
                   if property_description = property_info.delete(:desc)
                     property_info[:description] = property_description
                   end
+
+                  property_info[:type] = property_info[:type].to_s
                 end
 
                 result[name] = {
